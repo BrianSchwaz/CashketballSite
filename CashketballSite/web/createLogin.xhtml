@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <center>
+        <h:head>
+            <link href="https://fonts.googleapis.com/css?family=Bungee+Inline|Finger+Paint|Fredericka+the+Great" rel="stylesheet"/>
+            <link href="CSS/styles.css" rel="stylesheet" type="text/css" />
+            <link href="lightTheme/jquery-ui.css" rel="stylesheet" type="text/css"/>
+        </h:head>
+        <h:body>
+            <h:form>
+                <h1 id="main-header">CASHKETBALL</h1>
+                <div class="loginPage">
+                    <h2>New Login</h2>
+                    <h:panelGrid columns="3" cellspacing="10px">
+
+                        <h:outputText class="loginLabel" value="New Username: "/>
+
+                        <p:inputText value="#{newlogin.login}" 
+                                           required ="true"
+                                                   binding="#{newlogin.loginUI}"
+                                                   requiredMessage="Your must enter a login"/>
+
+                        <h:message for="login" style="color:red;margin:8px;"/>
+
+                        <h:outputText class="loginLabel" value="New Password: "/>
+
+                        <p:inputText value="#{newlogin.password}" required ="true"
+                                                 requiredMessage="Your must enter password"
+                                                 validatorMessage="Login already exists"
+                                                 validator="#{newlogin.validate}"/>
+
+                        <h:message for="password" style="color:red;margin:8px;"/>
+
+                    </h:panelGrid>
+                    <h:panelGrid columns="2">
+                        <p:commandButton value="Back" ajax="false" immediate="true" class="loginButton" action="#{newlogin.back}" icon="ui-icon-arrow-1-w"/>
+                        <p:commandButton value="Create Login" ajax="false" class="loginButton" action="#{newlogin.back}" icon="ui-icon-person"/>
+                    </h:panelGrid>
+                </div>
+            </h:form>
+
+        </h:body>
+        <div class="footer">
+            Created By: Brian Schwartz
+        </div>
+    </center>
+</html>
+
