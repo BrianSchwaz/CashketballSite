@@ -65,6 +65,10 @@ public class PlayerListBean implements Serializable{
     private ArrayList<String> selectedImp = new ArrayList<String>(Arrays.asList(imp));
     private String team = "Roster";
     private String currentSeason = "2018-19";
+    private String previousSearch = "";
+    private Integer previousOffset = 0;
+    private HashMap<String,String> field_list;
+    private ArrayList<String> col_names;
     
     
     public Login getLogin(){
@@ -164,6 +168,14 @@ public class PlayerListBean implements Serializable{
     public void setInput(String input) {
         this.input = input;
     }
+    
+    public Integer getOffset() {
+        return offset;
+    }
+
+    public void setOffset(Integer offset) {
+        this.offset = offset;
+    }
 
     /**
      * Creates a new instance of PlayerListBean
@@ -171,25 +183,31 @@ public class PlayerListBean implements Serializable{
     
     public void fillMap(HashMap<Integer,RecentSeason> table,ResultSet result) throws SQLException
     {
+        int i = 0;
+
         while (result.next()) {
-            RecentSeason recent = new RecentSeason();
-            for(String col_name: recent.getCol_names())
+            if(!table.containsKey(result.getInt("pid")))
             {
-                if(recent.getField_list().get(col_name).equals("text"))
-                {
-                    recent.setField(col_name, (Object)result.getString(col_name));
+                System.out.println("item:" + ++i);
+                RecentSeason recent = new RecentSeason();
+                for(String col_name: col_names)
+                {                      
+                    if(field_list.get(col_name).equals("text"))
+                    {
+                        recent.setField(col_name, (Object)result.getString(col_name));
+                    }
+                    else if(field_list.get(col_name).equals("integer"))
+                    {
+                        recent.setField(col_name, (Object)result.getInt(col_name));
+                    }
+                    else if(field_list.get(col_name).equals("real"))
+                    {
+                        recent.setField(col_name, (Object)result.getFloat(col_name));
+                    }
                 }
-                else if(recent.getField_list().get(col_name).equals("integer"))
-                {
-                    recent.setField(col_name, (Object)result.getInt(col_name));
-                }
-                else if(recent.getField_list().get(col_name).equals("real"))
-                {
-                    recent.setField(col_name, (Object)result.getFloat(col_name));
-                }
+                //store all data into a List
+                table.put(result.getInt("pid"),recent);
             }
-            //store all data into a List
-            table.put(result.getInt("pid"),recent);
         }
     }
     
@@ -201,19 +219,31 @@ public class PlayerListBean implements Serializable{
         return s.replace("_per_g", "").toUpperCase();
     }
     
+    public void getColInfo() throws SQLException{
+        col_names = new ArrayList<String>();
+        field_list = new HashMap<String,String>();
+        
+        PreparedStatement ps
+                = con.prepareStatement(
+                        "SELECT column_name,data_type FROM information_schema.columns WHERE table_name = '" + "PerGame" + "'");
+
+        //get Player data from database
+        ResultSet result = ps.executeQuery();
+
+        while (result.next()) {
+            String col_name = result.getString("column_name");
+            String data_type = result.getString("data_type");
+            //System.out.println(table + " " + col_name + " " + data_type);
+            col_names.add(col_name);
+            field_list.put(col_name,data_type);
+        }
+    }
+    
     public void updatePlayers() throws SQLException{
-        System.out.println(team);
         players = new HashMap<>();
         PreparedStatement ps = con.prepareStatement(
-                        "SELECT * FROM"
-                                + "(SELECT * FROM \"PerGame\" WHERE season = '" + currentSeason +"' AND name LIKE '%" + input + "%')pg "
-                                        + "LEFT JOIN "
-                                + "(SELECT * FROM \"" + team + "\" WHERE login = '" + curLogin() + "')roster "
-                                + "ON pg.pid = roster.pid "
-                                + "WHERE roster.pid IS NULL "
-                                + "ORDER BY pg.name "
-                                + "LIMIT " + rows + " OFFSET " + offset);
-        //get Player data from database
+                        Queries.constructPlayerQuery(Queries.pgsString(col_names), currentSeason, rows, offset, previousSearch, team, true, curLogin()));
+        
         ResultSet result = ps.executeQuery();
         
         fillMap(players,result);
@@ -231,10 +261,7 @@ public class PlayerListBean implements Serializable{
             opRoster = new HashMap<>();
         }
         PreparedStatement ps = con.prepareStatement(
-                "SELECT \"pg\".* FROM"
-                        + "(SELECT * FROM \"PerGame\" WHERE season = '" + currentSeason + "')pg INNER JOIN "
-                        + "(SELECT * FROM \""+ team +"\" WHERE login = '" + curLogin() + "')roster "
-                        + "ON pg.pid = roster.pid");
+                Queries.constructPlayerQuery(Queries.pgsString(col_names), currentSeason, rows, offset, previousSearch, team, false, curLogin()));
         
         ResultSet result = ps.executeQuery();
         
@@ -249,9 +276,9 @@ public class PlayerListBean implements Serializable{
     
     public PlayerListBean() throws SQLException {
         System.out.println("Cur Login: " + curLogin());
-
         input = "";
         String[] startingFields = {"name","team_id","mp_per_g","trb_per_g","ast_per_g","stl_per_g","blk_per_g","tov_per_g","pts_per_g"};
+        
         for(int i=0;i<startingFields.length;i++){
             showingFields.put(startingFields[i],"true");
         }
@@ -261,37 +288,29 @@ public class PlayerListBean implements Serializable{
                 showingFields.put(important.get(i),"false");
             }
         }
-        
         con = dbConnect.getConnection();
-
-        if (con == null) {
-            throw new SQLException("Can't get database connection");
-        }
         
-        this.team = "Opposing_Roster";
+        getColInfo();
+        
+        team = "Opposing_Roster";
         updateRoster();
-        this.team = "Roster";
+        team = "Roster";
         updateRoster();
         updatePlayers();
     }
     
     public void search() throws SQLException
     {
-        
-        if(input.equals("")){
+        System.out.print("updating");
+        if(previousSearch.equals(input) && previousOffset == offset){
             return;
         }
+        previousSearch = input;
+        previousOffset = offset;
         players = new HashMap<Integer,RecentSeason>();
-        PreparedStatement ps
-                = con.prepareStatement(
-                        "SELECT * FROM"
-                                + "(SELECT * FROM \"PerGame\" WHERE season = '" + currentSeason +"' AND name LIKE '%" + input + "%')pg "
-                                        + "LEFT JOIN "
-                                + "(SELECT * FROM \"" + team + "\" WHERE login = '" + curLogin() + "')roster "
-                                + "ON pg.pid = roster.pid "
-                                + "WHERE roster.pid IS NULL "
-                                + "ORDER BY pg.name "
-                                + "LIMIT " + rows + " OFFSET " + offset);
+        System.out.println(rows);
+        PreparedStatement ps = con.prepareStatement(
+                        Queries.constructPlayerQuery(Queries.pgsString(col_names), currentSeason, rows, offset, previousSearch, team, true, curLogin()));
 
         //get Player data from database
         ResultSet result = ps.executeQuery();
@@ -321,19 +340,25 @@ public class PlayerListBean implements Serializable{
     public void remove(String teamTable) throws SQLException
     {
         setTeam(teamTable);
-        System.out.println(teamTable + " " + selected.getField("pid"));
+        Integer pid = (Integer)selected.getField("pid");
         PreparedStatement ps
-            = con.prepareStatement("DELETE FROM \"" + teamTable + "\" WHERE login = '" + curLogin() + "' AND pid = " + selected.getField("pid") + ";");
+            = con.prepareStatement("DELETE FROM \"" + teamTable + "\" WHERE login = '" + curLogin() + "' AND pid = " + pid + ";");
         ps.executeUpdate();
         ps.close();
-        //(team.equals("Roster")?roster:opRoster).remove(pid);
-        updateRoster();
+        (team.equals("Roster")?roster:opRoster).remove(pid);
         updatePlayers();
     }
     
-    public void next10()
+    public void next() throws SQLException
     {
-        
+        offset += rows;
+        search();
+    }
+    
+    public void prev() throws SQLException
+    {
+        offset -= rows;
+        search();
     }
     
     public void add() throws SQLException
@@ -351,9 +376,9 @@ public class PlayerListBean implements Serializable{
             ps.executeUpdate();
             //con.commit();
             ps.close();
+            (team.equals("Roster")?roster:opRoster).put(pid, selected);
+            updatePlayers();
         }
-        updateRoster();
-        updatePlayers();
     }
     
     public void onRowSelect(SelectEvent event) {
