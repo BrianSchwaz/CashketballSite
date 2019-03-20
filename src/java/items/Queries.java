@@ -24,7 +24,7 @@ public class Queries {
         "               WHERE season = '" + currentSeason +"' AND NOT team_id = 'TOT' \n" +
         "               GROUP BY pid)tot\n" +
         "       JOIN\n" +
-        "               Tradetable pgs\n" +
+        "               (SELECT * FROM Tradetable WHERE season ='" + currentSeason + "')pgs\n" +
         "       ON pgs.pid = tot.pid)\n" +
         "       UNION\n" +
         "       (SELECT pgs.team_id as team_id" + pgsFields + "\n" +
@@ -46,7 +46,7 @@ public class Queries {
         "       (SELECT * FROM \""+ team +"\" WHERE login = '" + login + "')onRoster\n" +
         "ON curPLayers.pid = onRoster.pid \n" +
         (isSearch?"WHERE onRoster.pid IS NULL AND curPlayers.name LIKE '%" + searchInput + "%'\n":"") +
-        "ORDER BY curPlayers.name asc\n" +
+        "ORDER BY name asc\n" +
         "LIMIT " + rows + " OFFSET " + offset;
                 
     }
