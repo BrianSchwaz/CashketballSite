@@ -45,7 +45,7 @@ public class Queries {
         (isSearch?"LEFT":"INNER") + " JOIN\n" +
         "       (SELECT * FROM \""+ team +"\" WHERE login = '" + login + "')onRoster\n" +
         "ON curPLayers.pid = onRoster.pid \n" +
-        (isSearch?"WHERE onRoster.pid IS NULL AND curPlayers.name LIKE '%" + searchInput + "%'\n":"") +
+        (isSearch?"WHERE onRoster.pid IS NULL AND LOWER(curPlayers.name) LIKE '" + searchInput.toLowerCase() + "%'\n":"") +
         "ORDER BY name asc\n" +
         "LIMIT " + rows + " OFFSET " + offset;
                 
