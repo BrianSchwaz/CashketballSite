@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+    <h:head>
+        <link href="https://fonts.googleapis.com/css?family=Bungee+Inline|Finger+Paint|Fredericka+the+Great" rel="stylesheet"/>
+        <link href="CSS/styles.css" rel="stylesheet" type="text/css" />
+        <link href="lightTheme/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    </h:head>
+    <h:body>
+        <h:form>
+             <center>
+                <h1 id="main-header">CASHKETBALL</h1>
+                <p:tabMenu activeIndex="#{param.i}">
+                    <p:menuitem value="Your Roster" outcome="yourRoster" icon="ui-icon-star">
+                        <f:param name="i" value="0" />
+                    </p:menuitem>
+                     <p:menuitem value="Opposing Roster" outcome="opponentRoster" icon="ui-icon-notice">
+                         <f:param name="i" value="1" />
+                     </p:menuitem>
+                     <p:menuitem value="Players" outcome="players" icon="ui-icon-circle-zoomout">
+                         <f:param name="i" value="2" />
+                     </p:menuitem>
+                     <p:menuitem value="Predicitons" outcome="yourRoster" icon=" ui-icon-seek-next">
+                         <f:param name="i" value="3" />
+                     </p:menuitem>
+                     <p:menuitem value="Matchups" outcome="yourRoster" icon="ui-icon-transfer-e-w">
+                         <f:param name="i" value="4" />
+                     </p:menuitem>
+                </p:tabMenu>
+                <h2>Players</h2>
+                <div id="team_selector">
+                    <p:selectOneButton  required="true" value="#{playerListBean.team}">
+                        <p:ajax update='playerTable' event='change' listener="#{playerListBean.updatePlayers()}"/>
+                        <f:selectItem itemLabel="YOU" itemValue="Roster" />
+                        <f:selectItem itemLabel="OPPONENT" itemValue="Opposing_Roster"/>
+                    </p:selectOneButton>
+                </div>
+                <div style="padding-bottom: 15px;vertical-align: middle">
+                    <p:inputText id="search" style="width:350px;font-size:25px;height:40px; margin:10px;" placeholder="Enter Name" value="#{playerListBean.input}"/>
+                    <p:commandButton value="Search" action="#{playerListBean.enactSearch}" ajax="false"/>
+                </div>
+                <div style="padding-bottom: 15px">
+                    <c:forEach class="playerColumn" items="#{playerListBean.important}" var="columnName">
+                        <p:selectBooleanButton value="#{playerListBean.showingFields[columnName]}" immediate="true" onLabel="#{playerListBean.getDisplayable(columnName)}" offLabel="#{playerListBean.getDisplayable(columnName)}">
+                            <p:ajax update='playerTable'/>
+                        </p:selectBooleanButton>
+                    </c:forEach>
+                </div>
+                <p:dataTable selectionMode="single"
+                             selection="#{playerListBean.selected}"
+                             rows ="#{playerListBean.rows}" 
+                             rowKey="#{row.getField('pid')}"
+                             paginatorAlwaysVisible="false"
+                             paginator="false"
+                             paginatorPosition="bottom" 
+                             value="#{playerListBean.displayedPlayers}" 
+                             var="row"
+                             id="playerTable">
+                    <c:forEach class="playerColumn" items="#{playerListBean.selectedImp}" var="columnName">
+                        <p:column class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{row.getField(columnName)}">
+                            <h:outputText value="#{row.getField(columnName)}"/>
+                        </p:column>
+                    </c:forEach>
+<!--                    <p:columns value="#{playerListBean.selectedImp}" var="columnName" columnIndexVar="colIndex" sortBy="#{row.getField(columnName)}">
+                        <f:facet name="header">
+                            <h:outputText value="#{playerListBean.getDisplayable(columnName)}" />
+                        </f:facet>
+                        <h:outputText value="#{row.getField(columnName)}"/>
+                    </p:columns>-->
+                    <f:facet name="footer">
+                        <div style="display: flex;justify-content: space-between;">
+                            <p:commandButton icon="ui-icon-circle-triangle-w" update='playerTable' value="Prev" action="#{playerListBean.prev}" disabled="#{playerListBean.offset == 0}"/>
+                            <p:commandButton icon="ui-icon-plus" update='playerTable' value="Add" action="#{playerListBean.add}"/>
+                            <p:commandButton icon="ui-icon-circle-triangle-e" update='playerTable' value="Next" action="#{playerListBean.next}"/>
+                        </div>
+                    </f:facet>
+                </p:dataTable>
+                <p:button value="Logout" id="logout" href="index.xhtml" icon="ui-icon-person"/>
+            </center>
+            <div class="footer">
+                Created By: Brian Schwartz
+            </div>
+        </h:form>
+    </h:body>
+</html>
+
+         
+
+
+
+
+
+                
