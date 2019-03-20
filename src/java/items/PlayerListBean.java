@@ -51,6 +51,8 @@ public class PlayerListBean implements Serializable{
     private ELContext elContext = FacesContext.getCurrentInstance().getELContext();
     private Login login = (Login) FacesContext.getCurrentInstance().getApplication().getELResolver().getValue(elContext, null, "login");
     private HashMap<Integer,RecentSeason> players = new HashMap<>();
+    private List<RecentSeason> displayedPlayers = new ArrayList<>();
+    private HashMap<Integer,RecentSeason> filteredPlayers = new HashMap<>();
     private HashMap<Integer,RecentSeason> roster = new HashMap<>();
     private HashMap<Integer,RecentSeason> opRoster = new HashMap<>();
     private HashMap<String,String> showingFields = new HashMap<>();
@@ -69,7 +71,6 @@ public class PlayerListBean implements Serializable{
     private Integer previousOffset = 0;
     private HashMap<String,String> field_list;
     private ArrayList<String> col_names;
-    
     
     public Login getLogin(){
         return login;
@@ -176,7 +177,14 @@ public class PlayerListBean implements Serializable{
     public void setOffset(Integer offset) {
         this.offset = offset;
     }
+    
+    public HashMap<Integer, RecentSeason> getFilteredPlayers() {
+        return filteredPlayers;
+    }
 
+    public void setFilteredPlayers(HashMap<Integer, RecentSeason> filteredPlayers) {
+        this.filteredPlayers = filteredPlayers;
+    }
     /**
      * Creates a new instance of PlayerListBean
      */
@@ -211,8 +219,17 @@ public class PlayerListBean implements Serializable{
         }
     }
     
-    @PostConstruct
-    public void init() {
+    public void updateDisplayedPlayers(){
+        List<RecentSeason> r = new ArrayList<RecentSeason>(players.values());
+        displayedPlayers = r;
+    }
+    
+    public List<RecentSeason> getDisplayedPlayers() {
+        return displayedPlayers;
+    }
+
+    public void setDisplayedPlayers(List<RecentSeason> displayedPlayers) {
+        this.displayedPlayers = displayedPlayers;
     }
     
     public String getDisplayable(String s){
@@ -249,6 +266,8 @@ public class PlayerListBean implements Serializable{
         fillMap(players,result);
                 
         result.close();
+        
+        updateDisplayedPlayers();
     }
     
     public void updateRoster() throws SQLException{
@@ -308,10 +327,10 @@ public class PlayerListBean implements Serializable{
         previousSearch = input;
         previousOffset = offset;
         players = new HashMap<Integer,RecentSeason>();
-        System.out.println(rows);
+        System.out.println("rows: " + rows);
+        System.out.println("offset: " + offset);
         PreparedStatement ps = con.prepareStatement(
                         Queries.constructPlayerQuery(Queries.pgsString(col_names), currentSeason, rows, offset, previousSearch, team, true, curLogin()));
-
         //get Player data from database
         ResultSet result = ps.executeQuery();
         fillMap(players,result);
@@ -322,6 +341,11 @@ public class PlayerListBean implements Serializable{
     {
         List<RecentSeason> r = new ArrayList<RecentSeason>(players.values());
         return r;
+    }
+    
+    public void enactSearch() throws SQLException{
+        offset = 0;
+        search();
     }
     
     public String logout(){
