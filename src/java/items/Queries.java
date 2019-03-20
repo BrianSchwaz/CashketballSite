@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class Queries {
     
     public static String constructPlayerQuery(String pgsFields,String currentSeason,int rows,int offset, String searchInput,String team, boolean isSearch, String login){
+        System.out.println("Query login: " + login);
         return 
         "SELECT curPlayers.*\n" + 
         "FROM\n" +
@@ -29,13 +30,7 @@ public class Queries {
         "       UNION\n" +
         "       (SELECT pgs.team_id as team_id" + pgsFields + "\n" +
         "       FROM\n" +
-        "               (SELECT pg.*\n" + 
-        "               FROM\n" +
-        "                       (SELECT * FROM \"PerGame\" WHERE season = '"+ currentSeason +"')pg\n" +
-        "               LEFT JOIN\n" +
-        "                       (SELECT * FROM \"" + team + "\" WHERE login = '" + login + "')roster \n" +
-        "               ON pg.pid = roster.pid\n" +
-        "               WHERE roster.pid IS NULL)pgs\n" +
+        "               (SELECT * FROM \"PerGame\" WHERE season = '"+ currentSeason +"')pgs\n" +
         "       LEFT JOIN\n" +
         "               (SELECT *\n" +
         "               FROM (SELECT COUNT(pid) as count,pid FROM \"PerGame\" WHERE season = '" + currentSeason +"' GROUP BY pid)t1\n" +
@@ -47,7 +42,7 @@ public class Queries {
         "ON curPLayers.pid = onRoster.pid \n" +
         (isSearch?"WHERE onRoster.pid IS NULL AND LOWER(curPlayers.name) LIKE '" + searchInput.toLowerCase() + "%'\n":"") +
         "ORDER BY name asc\n" +
-        "LIMIT " + rows + " OFFSET " + offset;
+        (isSearch?"LIMIT " + rows + " OFFSET " + offset:"");
                 
     }
     
@@ -55,12 +50,10 @@ public class Queries {
         String pgs = "";
         for(int i=0;i< important.size();i++)
         {
-            System.out.println(important.get(i));
             if(!important.get(i).equals("team_id")){
                 pgs += ",pgs."+important.get(i);
             }
         }
-        System.out.println(pgs);
         return pgs;
     }
 }

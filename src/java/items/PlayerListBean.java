@@ -51,11 +51,13 @@ public class PlayerListBean implements Serializable{
     private ELContext elContext = FacesContext.getCurrentInstance().getELContext();
     private Login login = (Login) FacesContext.getCurrentInstance().getApplication().getELResolver().getValue(elContext, null, "login");
     private HashMap<Integer,RecentSeason> players = new HashMap<>();
-    private List<RecentSeason> displayedPlayers = new ArrayList<>();
     private HashMap<Integer,RecentSeason> filteredPlayers = new HashMap<>();
     private HashMap<Integer,RecentSeason> roster = new HashMap<>();
     private HashMap<Integer,RecentSeason> opRoster = new HashMap<>();
     private HashMap<String,String> showingFields = new HashMap<>();
+    private List<RecentSeason> displayedPlayers = new ArrayList<>();
+    private List<RecentSeason> displayedRoster = new ArrayList<>();
+    private List<RecentSeason> displayedOpposing = new ArrayList<>();
     private RecentSeason selected = null;
     private Integer offset = 0;
     private Integer rows = 10;
@@ -137,8 +139,7 @@ public class PlayerListBean implements Serializable{
     }
 
     public List<RecentSeason> getRoster() {
-        List<RecentSeason> r = new ArrayList<RecentSeason>(roster.values());
-        return r;
+        return new ArrayList<RecentSeason>(roster.values());
     }
    
     public void setRoster(HashMap<Integer, RecentSeason> roster) {
@@ -146,8 +147,8 @@ public class PlayerListBean implements Serializable{
     }
 
     public List<RecentSeason> getOpRoster() {
-        List<RecentSeason> r = new ArrayList<RecentSeason>(opRoster.values());
-        return r;
+        return new ArrayList<RecentSeason>(opRoster.values());
+        
     }
 
     public void setOpRoster(HashMap<Integer, RecentSeason> opRoster) {
@@ -196,7 +197,6 @@ public class PlayerListBean implements Serializable{
         while (result.next()) {
             if(!table.containsKey(result.getInt("pid")))
             {
-                System.out.println("item:" + ++i);
                 RecentSeason recent = new RecentSeason();
                 for(String col_name: col_names)
                 {                      
@@ -220,8 +220,15 @@ public class PlayerListBean implements Serializable{
     }
     
     public void updateDisplayedPlayers(){
-        List<RecentSeason> r = new ArrayList<RecentSeason>(players.values());
-        displayedPlayers = r;
+        displayedPlayers = new ArrayList<RecentSeason>(players.values());
+    }
+    
+    public void updateDisplayedRoster(){
+        displayedRoster = new ArrayList<RecentSeason>(roster.values());
+    }
+    
+    public void updateDisplayedOpposing(){
+        displayedOpposing = new ArrayList<RecentSeason>(opRoster.values());
     }
     
     public List<RecentSeason> getDisplayedPlayers() {
@@ -232,8 +239,24 @@ public class PlayerListBean implements Serializable{
         this.displayedPlayers = displayedPlayers;
     }
     
+    public List<RecentSeason> getDisplayedRoster() {
+        return displayedRoster;
+    }
+
+    public void setDisplayedRoster(List<RecentSeason> displayedRoster) {
+        this.displayedRoster = displayedRoster;
+    }
+
+    public List<RecentSeason> getDisplayedOpposing() {
+        return displayedOpposing;
+    }
+
+    public void setDisplayedOpposing(List<RecentSeason> displayedOpposing) {
+        this.displayedOpposing = displayedOpposing;
+    }
+    
     public String getDisplayable(String s){
-        return s.replace("_per_g", "").toUpperCase();
+        return s.replace("_per_g", "").replace("_pct", "%").replace("_id","").toUpperCase();
     }
     
     public void getColInfo() throws SQLException{
@@ -250,7 +273,6 @@ public class PlayerListBean implements Serializable{
         while (result.next()) {
             String col_name = result.getString("column_name");
             String data_type = result.getString("data_type");
-            //System.out.println(table + " " + col_name + " " + data_type);
             col_names.add(col_name);
             field_list.put(col_name,data_type);
         }
@@ -285,7 +307,8 @@ public class PlayerListBean implements Serializable{
         ResultSet result = ps.executeQuery();
         
         fillMap(team.equals("Roster")?roster:opRoster,result);
-        
+        if(team.equals("Roster")){updateDisplayedRoster();}
+        else{updateDisplayedOpposing();}
         result.close();
     }
     
@@ -327,13 +350,12 @@ public class PlayerListBean implements Serializable{
         previousSearch = input;
         previousOffset = offset;
         players = new HashMap<Integer,RecentSeason>();
-        System.out.println("rows: " + rows);
-        System.out.println("offset: " + offset);
         PreparedStatement ps = con.prepareStatement(
                         Queries.constructPlayerQuery(Queries.pgsString(col_names), currentSeason, rows, offset, previousSearch, team, true, curLogin()));
         //get Player data from database
         ResultSet result = ps.executeQuery();
         fillMap(players,result);
+        updateDisplayedPlayers();
         result.close();
     }
     
@@ -348,12 +370,10 @@ public class PlayerListBean implements Serializable{
         search();
     }
     
-    public String logout(){
-        
+    public String logout(){    
         System.out.print("logout");
         System.out.println("Logging out: " + curLogin());
-        setLogin(null);
-        System.out.println("New Login: " + curLogin());
+        FacesContext.getCurrentInstance().getExternalContext().invalidateSession();
         return "back";
     }
     
@@ -370,6 +390,8 @@ public class PlayerListBean implements Serializable{
         ps.executeUpdate();
         ps.close();
         (team.equals("Roster")?roster:opRoster).remove(pid);
+        if(team.equals("Roster")){updateDisplayedRoster();}
+        else{updateDisplayedOpposing();}
         updatePlayers();
     }
     
@@ -401,6 +423,8 @@ public class PlayerListBean implements Serializable{
             //con.commit();
             ps.close();
             (team.equals("Roster")?roster:opRoster).put(pid, selected);
+            if(team.equals("Roster")){updateDisplayedRoster();}
+            else{updateDisplayedOpposing();}
             updatePlayers();
         }
     }

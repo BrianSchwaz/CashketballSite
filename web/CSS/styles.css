@@ -44,10 +44,6 @@ div::before {
     border-spacing:0;
 }
 
-#logout{
-    margin-bottom: 200px;
-}
-
 #team_selector{
     padding-bottom:15px;
 }
@@ -172,6 +168,10 @@ button .ui-icon{
     margin:0px;
     padding:0px;
     font-family: 'Fredericka the Great', cursive;
+}
+
+.ui-button-text {
+    fontSize:20px;
 }
 
 #sidebar{

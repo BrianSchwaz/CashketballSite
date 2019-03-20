@@ -61,17 +61,13 @@
                              value="#{playerListBean.displayedPlayers}" 
                              var="row"
                              id="playerTable">
+                    <p:ajax event="rowSelect" listener="#{playerListBean.onRowSelect}"/>
+                    <p:ajax event="rowUnselect" listener="#{playerListBean.onRowUnselect}"/>
                     <c:forEach class="playerColumn" items="#{playerListBean.selectedImp}" var="columnName">
                         <p:column class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{row.getField(columnName)}">
                             <h:outputText value="#{row.getField(columnName)}"/>
                         </p:column>
                     </c:forEach>
-<!--                    <p:columns value="#{playerListBean.selectedImp}" var="columnName" columnIndexVar="colIndex" sortBy="#{row.getField(columnName)}">
-                        <f:facet name="header">
-                            <h:outputText value="#{playerListBean.getDisplayable(columnName)}" />
-                        </f:facet>
-                        <h:outputText value="#{row.getField(columnName)}"/>
-                    </p:columns>-->
                     <f:facet name="footer">
                         <div style="display: flex;justify-content: space-between;">
                             <p:commandButton icon="ui-icon-circle-triangle-w" update='playerTable' value="Prev" action="#{playerListBean.prev}" disabled="#{playerListBean.offset == 0}"/>
@@ -80,7 +76,11 @@
                         </div>
                     </f:facet>
                 </p:dataTable>
-                <p:button value="Logout" id="logout" href="index.xhtml" icon="ui-icon-person"/>
+                <h:panelGrid columns="2" columnClasses="left,right" style="width:100%">
+                    <p:chart type="line" model="#{chartView.animatedModel1}" style="width:400px;" />
+                    <p:chart type="bar" model="#{chartView.animatedModel2}" style="width:400px;" />
+                </h:panelGrid>
+                <h:commandButton style='font-size:1em;padding:1em;' class='logout' value="Logout" action="#{playerListBean.logout()}"/>
             </center>
             <div class="footer">
                 Created By: Brian Schwartz

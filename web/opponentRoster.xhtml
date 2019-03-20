@@ -36,15 +36,17 @@
                 <p:dataTable selectionMode="single"
                              selection="#{playerListBean.selected}"
                              rows ="#{playerListBean.rows}" 
-                             rowKey="#{row.getField('pid')}"
+                             rowKey="#{player.getField('pid')}"
                              paginatorAlwaysVisible="false"
                              paginatorPosition="bottom" 
                              paginator="false"
-                             value="#{playerListBean.opRoster.toArray()}" 
-                             var="row"
+                             value="#{playerListBean.displayedOpposing}" 
+                             var="player"
                              id="eventsDT">
                     <c:forEach class="playerColumn" items="#{playerListBean.important}" var="columnName">
-                        <p:column class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}">#{row.getField(columnName)}</p:column>
+                        <p:column class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{player.getField(columnName)}">
+                            #{player.getField(columnName)}
+                        </p:column>
                     </c:forEach>
                     <f:facet name="footer">
                         <p:commandButton icon="ui-icon-minus" value="Remove"/>
@@ -53,7 +55,7 @@
                 <f:facet name="footer">
                     <p:commandButton icon="ui-icon-minus" value="Remove" action="#{playerListBean.back}"/>
                 </f:facet>
-                <p:button value="Logout" id="logout" href="index" icon="ui-icon-person"/>
+                <h:commandButton style='font-size:1em;padding:1em;' class='logout' value="Logout" action="#{playerListBean.logout()}"/>
              </center>
             <div class="footer">
                 Created By: Brian Schwartz

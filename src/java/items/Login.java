@@ -132,8 +132,6 @@ public class Login implements Serializable {
             throws ValidatorException, SQLException {
         login = loginUI.getLocalValue().toString();
         password = value.toString();
-        
-        System.out.println(login);
 
         HashMap<String,String> log_pwd = getLogins();
         

@@ -41,11 +41,11 @@
                              paginator="false"
                              paginatorAlwaysVisible="false"
                              paginatorPosition="bottom" 
-                             value="#{playerListBean.roster}">
+                             value="#{playerListBean.displayedRoster}">
                     <p:ajax event="rowSelect" listener="#{playerListBean.onRowSelect}"/>
                     <p:ajax event="rowUnselect" listener="#{playerListBean.onRowUnselect}"/>   
                     <c:forEach class="playerColumn" items="#{playerListBean.important}" var="columnName">
-                        <p:column class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}">
+                        <p:column toggleable="true" class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{player.getField(columnName)}">
                             #{player.getField(columnName)}
                         </p:column>
                     </c:forEach>
@@ -53,7 +53,7 @@
                         <p:commandButton update='roster' icon="ui-icon-minus" value="Remove" action="#{playerListBean.remove('Roster')}"/>
                     </f:facet>
                 </p:dataTable>
-                <p:button value="Logout" id="logout" href="index.xhtml" icon="ui-icon-person"/>
+                <h:commandButton style='font-size:1em;padding:1em;' class='logout' value="Logout" action="#{playerListBean.logout()}"/>
             </center>
             <div class="footer">
                 Created By: Brian Schwartz
