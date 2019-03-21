@@ -5,29 +5,20 @@
  */
 package items;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
 
 /**
  *
  * @author bkschwar
  */
-public class RecentSeason {
+public class TableRow {
 
     /**
-     * Creates a new instance of RecentSeason
+     * Creates a new instance of TableRow
      */
     private HashMap<String,Object> field_value;
-    private DBConnect dbConnect = new DBConnect();
-    
 
     public HashMap<String, Object> getField_value() {
         return field_value;
@@ -49,15 +40,7 @@ public class RecentSeason {
         return field_value.get(field);
     }
     
-    public RecentSeason() throws SQLException {
+    public TableRow() throws SQLException {
         field_value = new HashMap<String,Object>();
-    }
-
-    public DBConnect getDbConnect() {
-        return dbConnect;
-    }
-
-    public void setDbConnect(DBConnect dbConnect) {
-        this.dbConnect = dbConnect;
     }
 }

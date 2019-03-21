@@ -41,11 +41,9 @@
                              paginator="false"
                              paginatorAlwaysVisible="false"
                              paginatorPosition="bottom" 
-                             value="#{playerListBean.displayedRoster}">
-                    <p:ajax event="rowSelect" listener="#{playerListBean.onRowSelect}"/>
-                    <p:ajax event="rowUnselect" listener="#{playerListBean.onRowUnselect}"/>   
+                             value="#{playerListBean.displayedRoster}">  
                     <c:forEach class="playerColumn" items="#{playerListBean.important}" var="columnName">
-                        <p:column toggleable="true" class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{player.getField(columnName)}">
+                        <p:column class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{player.getField(columnName)}">
                             #{player.getField(columnName)}
                         </p:column>
                     </c:forEach>

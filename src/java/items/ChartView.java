@@ -5,12 +5,16 @@
  */
 package items;
 
-import static com.sun.tools.xjc.reader.Ring.add;
 import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -19,22 +23,11 @@ import org.primefaces.event.ItemSelectEvent;
 import org.primefaces.model.chart.Axis;
 import org.primefaces.model.chart.AxisType;
 import org.primefaces.model.chart.BarChartModel;
-import org.primefaces.model.chart.BarChartSeries;
-import org.primefaces.model.chart.BubbleChartModel;
-import org.primefaces.model.chart.BubbleChartSeries;
-import org.primefaces.model.chart.CartesianChartModel;
 import org.primefaces.model.chart.CategoryAxis;
 import org.primefaces.model.chart.ChartSeries;
 import org.primefaces.model.chart.DateAxis;
-import org.primefaces.model.chart.DonutChartModel;
-import org.primefaces.model.chart.HorizontalBarChartModel;
 import org.primefaces.model.chart.LineChartModel;
 import org.primefaces.model.chart.LineChartSeries;
-import org.primefaces.model.chart.LinearAxis;
-import org.primefaces.model.chart.MeterGaugeChartModel;
-import org.primefaces.model.chart.OhlcChartModel;
-import org.primefaces.model.chart.OhlcChartSeries;
-import org.primefaces.model.chart.PieChartModel;
 
 /**
  *
@@ -42,9 +35,15 @@ import org.primefaces.model.chart.PieChartModel;
  */
 @ManagedBean
 public class ChartView implements Serializable {
-    private LineChartModel animatedModel1;
-    private BarChartModel animatedModel2;
-    private List<LineChartModel> gamesModels;
+
+    private static LineChartModel animatedModel1;
+    private static BarChartModel animatedModel2;
+    private static List<LineChartModel> gamesModels;
+    private static DBConnect dbConnect;
+    private static Connection con;
+    private static ArrayList<String> game_cols;
+    private static HashMap<String, String> col_type;
+    private static ArrayList<TableRow> games;
 
     public List<LineChartModel> getGamesModels() {
         return gamesModels;
@@ -66,6 +65,18 @@ public class ChartView implements Serializable {
     @PostConstruct
     public void init() {
         createAnimatedModels();
+        try {
+            dbConnect = DBConnect.getInstance();
+            con = dbConnect.getConnection();
+            gameColInfo();
+        } catch (SQLException ex) {
+            Logger.getLogger(ChartView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static void generateCharts(Integer pid) throws SQLException {
+        createAnimatedModels(pid);
+        System.out.println("Gen Charts for: " + pid);
     }
  
     public void itemSelect(ItemSelectEvent event) {
@@ -82,25 +93,17 @@ public class ChartView implements Serializable {
     public BarChartModel getAnimatedModel2() {
         return animatedModel2;
     }
- 
-    public BarChartModel initBarModel() {
+    
+    public static BarChartModel initBarModel() {
         BarChartModel model = new BarChartModel();
  
         ChartSeries fgs = new ChartSeries();
         fgs.setLabel("FG");
-        fgs.set("2004", 12);
-        fgs.set("2005", 10);
-        fgs.set("2006", 4);
-        fgs.set("2007", 15);
-        fgs.set("2008", 2.5);
+        fgs.set("2018-19", -1);
  
         ChartSeries fgsa = new ChartSeries();
         fgsa.setLabel("FGA");
-        fgsa.set("2004", 5);
-        fgsa.set("2005", 6);
-        fgsa.set("2006", 11);
-        fgsa.set("2007", 13.5);
-        fgsa.set("2008", 12);
+        fgsa.set("2018-19", -1);
  
         model.addSeries(fgs);
         model.addSeries(fgsa);
@@ -110,26 +113,40 @@ public class ChartView implements Serializable {
         return model;
     }
  
-    public LineChartModel initLinearModel() {
+    public static BarChartModel initBarModel(Integer pid,Integer limit) {
+        BarChartModel model = new BarChartModel();
+ 
+        ChartSeries fgs = new ChartSeries();
+        fgs.setLabel("FG");
+ 
+        ChartSeries fgsa = new ChartSeries();
+        fgsa.setLabel("FGA");
+        for(int i = games.size()-1;i >= 0 && i>=games.size()- limit;i--)
+        {
+            fgs.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField("fg"));
+            fgsa.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField("fga"));
+        }
+ 
+        model.addSeries(fgs);
+        model.addSeries(fgsa);
+        
+        CategoryAxis axis = new CategoryAxis("Dates");
+        axis.setTickAngle(-50);
+        model.getAxes().put(AxisType.X, axis);
+ 
+        return model;
+    }
+    
+    public static LineChartModel initLinearModel() {
         LineChartModel model = new LineChartModel();
  
         LineChartSeries homepts = new LineChartSeries();
         homepts.setLabel("Home Games");
- 
-        homepts.set(1, 2);
-        homepts.set(2, 1);
-        homepts.set(3, 3);
-        homepts.set(4, 6);
-        homepts.set(5, 8);
+        homepts.set("2018-19", -1);
  
         LineChartSeries awaypts = new LineChartSeries();
         awaypts.setLabel("Away Games");
- 
-        awaypts.set(1, 6);
-        awaypts.set(2, 3);
-        awaypts.set(3, 2);
-        awaypts.set(4, 7);
-        awaypts.set(5, 9);
+        awaypts.set("2018-19", -1);
  
         model.addSeries(homepts);
         model.addSeries(awaypts);
@@ -137,6 +154,135 @@ public class ChartView implements Serializable {
         model.getAxes().put(AxisType.X, new CategoryAxis("Date"));
  
         return model;
+    }
+
+ 
+    public static LineChartModel initLinearModel(Integer pid) {
+        LineChartModel model = new LineChartModel();
+ 
+        LineChartSeries homepts = new LineChartSeries();
+        homepts.setLabel("Home Games");
+        LineChartSeries awaypts = new LineChartSeries();
+        awaypts.setLabel("Away Games");
+        
+        for(int i = games.size()-1;i >= 0;i--)
+        {
+            if(games.get(i).getField("game_location").equals("@"))
+            {
+                awaypts.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField("pts"));
+            }
+            else
+            {
+                homepts.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField("pts"));
+            }
+            System.out.println((Integer)games.get(i).getField("pts"));
+        }
+        
+//        homepts.set("2018-10-01", 2);
+//        homepts.set("2018-10-03", 1);
+//        homepts.set("2018-10-05", 3);
+//        homepts.set("2018-10-07", 6);g
+//        homepts.set("2018-10-09", 8);
+ 
+        model.addSeries(homepts);
+        model.addSeries(awaypts);
+        
+        DateAxis axis = new DateAxis("Dates");
+        axis.setTickAngle(-50);
+        axis.setTickFormat("%b %#d, %y");
+ 
+        model.getAxes().put(AxisType.X, axis);
+ 
+        return model;
+    }
+    
+    public void gameColInfo() throws SQLException{
+        game_cols = new ArrayList<String>();
+        col_type = new HashMap<String,String>();
+        
+        PreparedStatement ps = con.prepareStatement(Queries.getCols("Game"));
+
+        //get Player data from database
+        ResultSet result = ps.executeQuery();
+
+        while (result.next()) {
+            String col_name = result.getString("column_name");
+            String data_type = result.getString("data_type");
+            game_cols.add(col_name);
+            col_type.put(col_name,data_type);
+        }
+    }
+    
+    private static void getGames(Integer pid,String startDate,Integer limit) throws SQLException{
+        PreparedStatement ps = con.prepareStatement(Queries.gamesQuery(pid, startDate,limit));
+        ResultSet result = ps.executeQuery();
+        
+        while (result.next()) {
+            TableRow game = new TableRow();
+            for(String col_name: game_cols)
+            {                      
+                if(col_type.get(col_name).equals("text"))
+                {
+                    game.setField(col_name, (Object)result.getString(col_name));
+                }
+                else if(col_type.get(col_name).equals("integer"))
+                {
+                    game.setField(col_name, (Object)result.getInt(col_name));
+                }
+                else if(col_type.get(col_name).equals("real"))
+                {
+                    game.setField(col_name, (Object)result.getFloat(col_name));
+                }
+            }
+            //store all data into a List
+            games.add(game);
+            System.out.println(result.getString("date_game"));
+        }
+        ps.close();
+    }
+    
+    private static Object getAgg(Integer pid,String startDate,String agg,String col_name,Integer limit) throws SQLException{
+        PreparedStatement ps = con.prepareStatement(Queries.gamesVal(pid, startDate,agg,col_name,limit));
+        ResultSet result = ps.executeQuery();
+        result.next();
+        if(col_type.get(col_name).equals("text"))
+        {
+            return (Object)result.getString(col_name);
+        }
+        else if(col_type.get(col_name).equals("integer"))
+        {
+            return (Object)result.getInt(col_name);
+        }
+        else
+        {
+            return (Object)result.getFloat(col_name);
+        }
+    }
+    
+    private static void createAnimatedModels(Integer pid) throws SQLException {
+        games = new ArrayList<TableRow>();
+        int limit = 10;
+        int barLimit = 5;
+        String startDate = "2018-10-01";
+        Integer maxScore = (Integer)getAgg(pid,startDate,"MAX","pts",limit);
+        Integer maxFGA = (Integer)getAgg(pid,startDate,"MAX","fga",limit);
+        getGames(pid,startDate,limit);
+        
+        animatedModel1 = initLinearModel(pid);
+        animatedModel1.setTitle("Points Scored");
+        animatedModel1.setAnimate(true);
+        animatedModel1.setLegendPosition("se");
+        Axis yAxis = animatedModel1.getAxis(AxisType.Y);
+        yAxis.setMin(0);
+        yAxis.setMax(maxScore + maxScore/5);
+ 
+        animatedModel2 = initBarModel(pid,barLimit);
+        animatedModel2.setTitle("Field Goals");
+        animatedModel2.setAnimate(true);
+        animatedModel2.setLegendPosition("ne");
+        yAxis = animatedModel2.getAxis(AxisType.Y);
+        yAxis.setMin(0);
+        yAxis.setMax(maxFGA + maxFGA/5);
     }
  
     public void createAnimatedModels() {

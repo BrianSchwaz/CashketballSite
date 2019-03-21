@@ -34,9 +34,9 @@
     </managed-bean>
     <managed-bean>
         <managed-bean-name>recentSeason</managed-bean-name>
-        <managed-bean-class>items.RecentSeason</managed-bean-class>
-        <managed-bean-scope>session</managed-bean-scope>
-    </managed-bean>
+        <managed-bean-class>items.TableRow</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope></managed-bean>
     <managed-bean>
         <managed-bean-name>chartView</managed-bean-name>
         <managed-bean-class>items.ChartView</managed-bean-class>

@@ -41,12 +41,18 @@
                     </p:selectOneButton>
                 </div>
                 <div style="padding-bottom: 15px;vertical-align: middle">
-                    <p:inputText id="search" style="width:350px;font-size:25px;height:40px; margin:10px;" placeholder="Enter Name" value="#{playerListBean.input}"/>
+                    <p:inputText id="search" 
+                                 style="width:350px;font-size:25px;height:40px; margin:10px;" 
+                                 placeholder="Enter Name" 
+                                 value="#{playerListBean.input}"/>
                     <p:commandButton value="Search" action="#{playerListBean.enactSearch}" ajax="false"/>
                 </div>
                 <div style="padding-bottom: 15px">
                     <c:forEach class="playerColumn" items="#{playerListBean.important}" var="columnName">
-                        <p:selectBooleanButton value="#{playerListBean.showingFields[columnName]}" immediate="true" onLabel="#{playerListBean.getDisplayable(columnName)}" offLabel="#{playerListBean.getDisplayable(columnName)}">
+                        <p:selectBooleanButton value="#{playerListBean.showingFields[columnName]}" 
+                                               immediate="true" 
+                                               onLabel="#{playerListBean.getDisplayable(columnName)}" 
+                                               offLabel="#{playerListBean.getDisplayable(columnName)}">
                             <p:ajax update='playerTable'/>
                         </p:selectBooleanButton>
                     </c:forEach>
@@ -61,8 +67,8 @@
                              value="#{playerListBean.displayedPlayers}" 
                              var="row"
                              id="playerTable">
-                    <p:ajax event="rowSelect" listener="#{playerListBean.onRowSelect}"/>
-                    <p:ajax event="rowUnselect" listener="#{playerListBean.onRowUnselect}"/>
+                    <p:ajax event="rowSelect" listener="#{playerListBean.onRowSelect}" update="@(form)"/>
+                    <p:ajax event="rowUnselect" listener="#{playerListBean.onRowUnselect}" update='@(form)'/>
                     <c:forEach class="playerColumn" items="#{playerListBean.selectedImp}" var="columnName">
                         <p:column class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{row.getField(columnName)}">
                             <h:outputText value="#{row.getField(columnName)}"/>
@@ -76,23 +82,21 @@
                         </div>
                     </f:facet>
                 </p:dataTable>
-                <h:panelGrid columns="2" columnClasses="left,right" style="width:75%;left:30%;margin-bottom:75px;">
+                <h2>Recent Performance:</h2>
+                <h:outputLabel style="color:black;font-size:3em;" 
+                               value='#{playerListBean.selected.getField("name")}' 
+                               rendered="#{playerListBean.renderCharts}"/>
+                <h:panelGrid id='dataCharts' rendered="true" columns="2" columnClasses="left,right" style="width:80%;left:20%;margin-bottom:75px;">
                     <p:chart type="line" model="#{chartView.animatedModel1}" style="width:600px;height:600px;font-size:2em" />
                     <p:chart type="bar" model="#{chartView.animatedModel2}" style="width:600px;height:600px;font-size:2em" />
                 </h:panelGrid>
-                <h:commandButton style='font-size:1em;padding:1em;' class='logout' value="Logout" action="#{playerListBean.logout()}"/>
+                <h:commandButton style='font-size:1em;padding:1em;' 
+                                 class='logout' value="Logout" 
+                                 action="#{playerListBean.logout()}"/>
             </center>
             <div class="footer">
                 Created By: Brian Schwartz
             </div>
         </h:form>
     </h:body>
-</html>
-
-         
-
-
-
-
-
-                
+</html>               

@@ -46,11 +46,22 @@ public class Queries {
                 
     }
     
-    public static String gamesQuery(Integer pid,String startDate){
+    public static String gamesQuery(Integer pid,String startDate,Integer limit){
         return "SELECT *\n" +
-        "FROM public.\"Game\"\n" +
-        "WHERE date_game > '2018-10-01' AND pid = " + pid +"\n" +
-        "ORDER BY name asc,date_game asc;";
+        "FROM \"Game\"\n" +
+        "WHERE date_game > '" + startDate + "' AND pid = " + pid +"\n" +
+        "ORDER BY date_game desc\n" +
+        "LIMIT " + limit;
+    }
+    
+    public static String gamesVal(Integer pid,String startDate,String agg,String field,Integer limit){
+        return "SELECT " + agg + "(" + field + ") AS " + field + "\n" +
+        "FROM (" + gamesQuery(pid,startDate,limit) + ")lastGames\n" +
+        "GROUP BY lastGames.pid\n";
+    }
+    
+    public static String getCols(String table){
+        return "SELECT column_name,data_type FROM information_schema.columns WHERE table_name = '" + table + "'";
     }
     
     public static String pgsString(ArrayList<String> important){

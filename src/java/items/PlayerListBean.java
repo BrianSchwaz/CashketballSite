@@ -50,15 +50,15 @@ public class PlayerListBean implements Serializable{
     @ManagedProperty(value="#{login}")
     private ELContext elContext = FacesContext.getCurrentInstance().getELContext();
     private Login login = (Login) FacesContext.getCurrentInstance().getApplication().getELResolver().getValue(elContext, null, "login");
-    private HashMap<Integer,RecentSeason> players = new HashMap<>();
-    private HashMap<Integer,RecentSeason> filteredPlayers = new HashMap<>();
-    private HashMap<Integer,RecentSeason> roster = new HashMap<>();
-    private HashMap<Integer,RecentSeason> opRoster = new HashMap<>();
+    private HashMap<Integer,TableRow> players = new HashMap<>();
+    private HashMap<Integer,TableRow> filteredPlayers = new HashMap<>();
+    private HashMap<Integer,TableRow> roster = new HashMap<>();
+    private HashMap<Integer,TableRow> opRoster = new HashMap<>();
     private HashMap<String,String> showingFields = new HashMap<>();
-    private List<RecentSeason> displayedPlayers = new ArrayList<>();
-    private List<RecentSeason> displayedRoster = new ArrayList<>();
-    private List<RecentSeason> displayedOpposing = new ArrayList<>();
-    private RecentSeason selected = null;
+    private List<TableRow> displayedPlayers = new ArrayList<>();
+    private List<TableRow> displayedRoster = new ArrayList<>();
+    private List<TableRow> displayedOpposing = new ArrayList<>();
+    private TableRow selected = null;
     private Integer offset = 0;
     private Integer rows = 10;
     private DBConnect dbConnect = DBConnect.getInstance();
@@ -73,6 +73,7 @@ public class PlayerListBean implements Serializable{
     private Integer previousOffset = 0;
     private HashMap<String,String> field_list;
     private ArrayList<String> col_names;
+    private Boolean renderCharts;
     
     public Login getLogin(){
         return login;
@@ -86,11 +87,11 @@ public class PlayerListBean implements Serializable{
         return showingFields;
     }
     
-    public RecentSeason getSelected() {
+    public TableRow getSelected() {
         return selected;
     }
 
-    public void setSelected(RecentSeason selected) {
+    public void setSelected(TableRow selected) {
         this.selected = selected;
     }
 
@@ -138,20 +139,20 @@ public class PlayerListBean implements Serializable{
         return team;
     }
 
-    public List<RecentSeason> getRoster() {
-        return new ArrayList<RecentSeason>(roster.values());
+    public List<TableRow> getRoster() {
+        return new ArrayList<TableRow>(roster.values());
     }
    
-    public void setRoster(HashMap<Integer, RecentSeason> roster) {
+    public void setRoster(HashMap<Integer, TableRow> roster) {
         this.roster = roster;
     }
 
-    public List<RecentSeason> getOpRoster() {
-        return new ArrayList<RecentSeason>(opRoster.values());
+    public List<TableRow> getOpRoster() {
+        return new ArrayList<TableRow>(opRoster.values());
         
     }
 
-    public void setOpRoster(HashMap<Integer, RecentSeason> opRoster) {
+    public void setOpRoster(HashMap<Integer, TableRow> opRoster) {
         this.opRoster = opRoster;
     }
 
@@ -179,25 +180,32 @@ public class PlayerListBean implements Serializable{
         this.offset = offset;
     }
     
-    public HashMap<Integer, RecentSeason> getFilteredPlayers() {
+    public HashMap<Integer, TableRow> getFilteredPlayers() {
         return filteredPlayers;
     }
 
-    public void setFilteredPlayers(HashMap<Integer, RecentSeason> filteredPlayers) {
+    public void setFilteredPlayers(HashMap<Integer, TableRow> filteredPlayers) {
         this.filteredPlayers = filteredPlayers;
     }
+    
+    public Boolean getRenderCharts() {
+        return renderCharts;
+    }
+
+    public void setRenderCharts(Boolean renderCharts) {
+        this.renderCharts = renderCharts;
+    }
+    
     /**
      * Creates a new instance of PlayerListBean
      */
     
-    public void fillMap(HashMap<Integer,RecentSeason> table,ResultSet result) throws SQLException
+    public void fillMap(HashMap<Integer,TableRow> table,ResultSet result) throws SQLException
     {
-        int i = 0;
-
         while (result.next()) {
             if(!table.containsKey(result.getInt("pid")))
             {
-                RecentSeason recent = new RecentSeason();
+                TableRow recent = new TableRow();
                 for(String col_name: col_names)
                 {                      
                     if(field_list.get(col_name).equals("text"))
@@ -220,38 +228,38 @@ public class PlayerListBean implements Serializable{
     }
     
     public void updateDisplayedPlayers(){
-        displayedPlayers = new ArrayList<RecentSeason>(players.values());
+        displayedPlayers = new ArrayList<TableRow>(players.values());
     }
     
     public void updateDisplayedRoster(){
-        displayedRoster = new ArrayList<RecentSeason>(roster.values());
+        displayedRoster = new ArrayList<TableRow>(roster.values());
     }
     
     public void updateDisplayedOpposing(){
-        displayedOpposing = new ArrayList<RecentSeason>(opRoster.values());
+        displayedOpposing = new ArrayList<TableRow>(opRoster.values());
     }
     
-    public List<RecentSeason> getDisplayedPlayers() {
+    public List<TableRow> getDisplayedPlayers() {
         return displayedPlayers;
     }
 
-    public void setDisplayedPlayers(List<RecentSeason> displayedPlayers) {
+    public void setDisplayedPlayers(List<TableRow> displayedPlayers) {
         this.displayedPlayers = displayedPlayers;
     }
     
-    public List<RecentSeason> getDisplayedRoster() {
+    public List<TableRow> getDisplayedRoster() {
         return displayedRoster;
     }
 
-    public void setDisplayedRoster(List<RecentSeason> displayedRoster) {
+    public void setDisplayedRoster(List<TableRow> displayedRoster) {
         this.displayedRoster = displayedRoster;
     }
 
-    public List<RecentSeason> getDisplayedOpposing() {
+    public List<TableRow> getDisplayedOpposing() {
         return displayedOpposing;
     }
 
-    public void setDisplayedOpposing(List<RecentSeason> displayedOpposing) {
+    public void setDisplayedOpposing(List<TableRow> displayedOpposing) {
         this.displayedOpposing = displayedOpposing;
     }
     
@@ -263,9 +271,7 @@ public class PlayerListBean implements Serializable{
         col_names = new ArrayList<String>();
         field_list = new HashMap<String,String>();
         
-        PreparedStatement ps
-                = con.prepareStatement(
-                        "SELECT column_name,data_type FROM information_schema.columns WHERE table_name = '" + "PerGame" + "'");
+        PreparedStatement ps = con.prepareStatement(Queries.getCols("PerGame"));
 
         //get Player data from database
         ResultSet result = ps.executeQuery();
@@ -319,6 +325,7 @@ public class PlayerListBean implements Serializable{
     public PlayerListBean() throws SQLException {
         System.out.println("Cur Login: " + curLogin());
         input = "";
+        renderCharts = false;
         String[] startingFields = {"name","team_id","mp_per_g","trb_per_g","ast_per_g","stl_per_g","blk_per_g","tov_per_g","pts_per_g"};
         
         for(int i=0;i<startingFields.length;i++){
@@ -349,7 +356,7 @@ public class PlayerListBean implements Serializable{
         }
         previousSearch = input;
         previousOffset = offset;
-        players = new HashMap<Integer,RecentSeason>();
+        players = new HashMap<Integer,TableRow>();
         PreparedStatement ps = con.prepareStatement(
                         Queries.constructPlayerQuery(Queries.pgsString(col_names), currentSeason, rows, offset, previousSearch, team, true, curLogin()));
         //get Player data from database
@@ -359,9 +366,9 @@ public class PlayerListBean implements Serializable{
         result.close();
     }
     
-    public List<RecentSeason> getPlayers()
+    public List<TableRow> getPlayers()
     {
-        List<RecentSeason> r = new ArrayList<RecentSeason>(players.values());
+        List<TableRow> r = new ArrayList<TableRow>(players.values());
         return r;
     }
     
@@ -430,12 +437,15 @@ public class PlayerListBean implements Serializable{
         }
     }
     
-    public void onRowSelect(SelectEvent event) {
-        System.out.println(((RecentSeason) selected).getField("name"));
+    public void onRowSelect(SelectEvent event) throws SQLException {
+        System.out.println(((TableRow) selected).getField("name"));
+        renderCharts = true;
+        ChartView.generateCharts((Integer)((TableRow) selected).getField("pid"));
     }
  
     public void onRowUnselect(UnselectEvent event) {
-        FacesMessage msg = new FacesMessage("Car Unselected", (String)(((RecentSeason) event.getObject()).getField("pid")));
+        FacesMessage msg = new FacesMessage("Car Unselected", (String)(((TableRow) event.getObject()).getField("pid")));
         FacesContext.getCurrentInstance().addMessage(null, msg);
+        renderCharts=false;
     }
 }
