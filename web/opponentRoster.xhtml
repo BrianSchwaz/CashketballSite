@@ -33,28 +33,26 @@
                      </p:menuitem>
                 </p:tabMenu>
                 <h2>Opposing Team</h2>
-                <p:dataTable selectionMode="single"
+                <p:dataTable id='roster' 
+                             var='player'
+                             selectionMode="single"
                              selection="#{playerListBean.selected}"
-                             rows ="#{playerListBean.rows}" 
                              rowKey="#{player.getField('pid')}"
+                             paginator="false"
                              paginatorAlwaysVisible="false"
                              paginatorPosition="bottom" 
-                             paginator="false"
-                             value="#{playerListBean.displayedOpposing}" 
-                             var="player"
-                             id="eventsDT">
+                             value="#{playerListBean.displayedOpposing}">
+                    <p:ajax event="rowSelect" listener="#{playerListBean.onRowSelect}"/>
+                    <p:ajax event="rowUnselect" listener="#{playerListBean.onRowUnselect}"/>   
                     <c:forEach class="playerColumn" items="#{playerListBean.important}" var="columnName">
-                        <p:column class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{player.getField(columnName)}">
+                        <p:column toggleable="true" class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{player.getField(columnName)}">
                             #{player.getField(columnName)}
                         </p:column>
                     </c:forEach>
                     <f:facet name="footer">
-                        <p:commandButton icon="ui-icon-minus" value="Remove"/>
+                        <p:commandButton update='roster' icon="ui-icon-minus" value="Remove" action="#{playerListBean.remove('Opposing_Roster')}"/>
                     </f:facet>
                 </p:dataTable>
-                <f:facet name="footer">
-                    <p:commandButton icon="ui-icon-minus" value="Remove" action="#{playerListBean.back}"/>
-                </f:facet>
                 <h:commandButton style='font-size:1em;padding:1em;' class='logout' value="Logout" action="#{playerListBean.logout()}"/>
              </center>
             <div class="footer">

@@ -40,10 +40,17 @@ public class Queries {
         (isSearch?"LEFT":"INNER") + " JOIN\n" +
         "       (SELECT * FROM \""+ team +"\" WHERE login = '" + login + "')onRoster\n" +
         "ON curPLayers.pid = onRoster.pid \n" +
-        (isSearch?"WHERE onRoster.pid IS NULL AND LOWER(curPlayers.name) LIKE '" + searchInput.toLowerCase() + "%'\n":"") +
+        (isSearch?"WHERE onRoster.pid IS NULL AND LOWER(curPlayers.name) LIKE '%" + searchInput.toLowerCase() + "%'\n":"") +
         "ORDER BY name asc\n" +
         (isSearch?"LIMIT " + rows + " OFFSET " + offset:"");
                 
+    }
+    
+    public static String gamesQuery(Integer pid,String startDate){
+        return "SELECT *\n" +
+        "FROM public.\"Game\"\n" +
+        "WHERE date_game > '2018-10-01' AND pid = " + pid +"\n" +
+        "ORDER BY name asc,date_game asc;";
     }
     
     public static String pgsString(ArrayList<String> important){

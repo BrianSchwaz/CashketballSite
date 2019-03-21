@@ -383,14 +383,15 @@ public class PlayerListBean implements Serializable{
     
     public void remove(String teamTable) throws SQLException
     {
+        System.out.println(team);
         setTeam(teamTable);
         Integer pid = (Integer)selected.getField("pid");
         PreparedStatement ps
             = con.prepareStatement("DELETE FROM \"" + teamTable + "\" WHERE login = '" + curLogin() + "' AND pid = " + pid + ";");
         ps.executeUpdate();
         ps.close();
-        (team.equals("Roster")?roster:opRoster).remove(pid);
-        if(team.equals("Roster")){updateDisplayedRoster();}
+        (teamTable.equals("Roster")?roster:opRoster).remove(pid);
+        if(teamTable.equals("Roster")){updateDisplayedRoster();}
         else{updateDisplayedOpposing();}
         updatePlayers();
     }

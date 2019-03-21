@@ -76,9 +76,9 @@
                         </div>
                     </f:facet>
                 </p:dataTable>
-                <h:panelGrid columns="2" columnClasses="left,right" style="width:100%">
-                    <p:chart type="line" model="#{chartView.animatedModel1}" style="width:400px;" />
-                    <p:chart type="bar" model="#{chartView.animatedModel2}" style="width:400px;" />
+                <h:panelGrid columns="2" columnClasses="left,right" style="width:75%;left:30%;margin-bottom:75px;">
+                    <p:chart type="line" model="#{chartView.animatedModel1}" style="width:600px;height:600px;font-size:2em" />
+                    <p:chart type="bar" model="#{chartView.animatedModel2}" style="width:600px;height:600px;font-size:2em" />
                 </h:panelGrid>
                 <h:commandButton style='font-size:1em;padding:1em;' class='logout' value="Logout" action="#{playerListBean.logout()}"/>
             </center>
