@@ -86,9 +86,15 @@
                 <h:outputLabel style="color:black;font-size:3em;" 
                                value='#{playerListBean.selected.getField("name")}' 
                                rendered="#{playerListBean.renderCharts}"/>
-                <h:panelGrid id='dataCharts' rendered="true" columns="2" columnClasses="left,right" style="width:80%;left:20%;margin-bottom:75px;">
-                    <p:chart type="line" model="#{chartView.animatedModel1}" style="width:600px;height:600px;font-size:2em" />
-                    <p:chart type="bar" model="#{chartView.animatedModel2}" style="width:600px;height:600px;font-size:2em" />
+                <h:panelGrid id='dataCharts' rendered="true" columns="2" columnClasses="left,right" style="width:80%;left:20%;">
+                    <p:chart type="line" model="#{chartView.animatedModel1}" style="width:600px;height:600px;font-size:2em;" />
+                    <p:chart type="bar" model="#{chartView.animatedModel2}" style="width:600px;height:600px;font-size:2em;" />
+                    <p:dataList value="#{playerListBean.pidDist}" var="player" type="ordered" style="margin-top: 200px;">
+                        <f:facet name="header">
+                            Most Similar Players
+                        </f:facet>
+                        <center> #{player.name}, Distance: #{player.distance} </center>
+                    </p:dataList>
                 </h:panelGrid>
                 <h:commandButton style='font-size:1em;padding:1em;' 
                                  class='logout' value="Logout" 

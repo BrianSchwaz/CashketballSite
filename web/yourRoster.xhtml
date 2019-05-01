@@ -40,7 +40,7 @@
                              rowKey="#{player.getField('pid')}"
                              paginator="false"
                              paginatorAlwaysVisible="false"
-                             paginatorPosition="bottom" 
+                             paginatorPosition="bottom"
                              value="#{playerListBean.displayedRoster}">  
                     <c:forEach class="playerColumn" items="#{playerListBean.important}" var="columnName">
                         <p:column class="playerColumn" headerText="#{playerListBean.getDisplayable(columnName)}" sortBy="#{player.getField(columnName)}">

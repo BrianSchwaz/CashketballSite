@@ -74,4 +74,29 @@ public class Queries {
         }
         return pgs;
     }
+    
+    public static String allPlayers(String pgsFields,String currentSeason){
+        return 
+        "SELECT curPlayers.*\n" + 
+        "FROM\n" +
+        "       ((SELECT tot.team_id as team_id" + pgsFields + "\n" + 
+        "       FROM\n" +
+        "               (SELECT string_agg(team_id,'/') as team_id, pid\n" + 
+        "               FROM \"PerGame\"\n" + 
+        "               WHERE season = '" + currentSeason +"' AND NOT team_id = 'TOT' \n" +
+        "               GROUP BY pid)tot\n" +
+        "       JOIN\n" +
+        "               (SELECT * FROM Tradetable WHERE season ='" + currentSeason + "')pgs\n" +
+        "       ON pgs.pid = tot.pid)\n" +
+        "       UNION\n" +
+        "       (SELECT pgs.team_id as team_id" + pgsFields + "\n" +
+        "       FROM\n" +
+        "               (SELECT * FROM \"PerGame\" WHERE season = '"+ currentSeason +"')pgs\n" +
+        "       LEFT JOIN\n" +
+        "               (SELECT *\n" +
+        "               FROM (SELECT COUNT(pid) as count,pid FROM \"PerGame\" WHERE season = '" + currentSeason +"' GROUP BY pid)t1\n" +
+        "               WHERE count > 1)tot\n" +
+        "       ON pgs.pid = tot.pid\n" +
+        "       WHERE tot.pid IS NULL))curPlayers\n";
+    }
 }

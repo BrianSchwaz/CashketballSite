@@ -29,7 +29,7 @@
 
                         <h:outputText class="loginLabel" value="New Password: "/>
 
-                        <p:inputText value="#{newlogin.password}" required ="true"
+                        <p:password value="#{newlogin.password}" required ="true" 
                                                  requiredMessage="Your must enter password"
                                                  validatorMessage="Login already exists"
                                                  validator="#{newlogin.validate}"/>

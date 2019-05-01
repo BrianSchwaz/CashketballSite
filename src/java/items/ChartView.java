@@ -76,7 +76,7 @@ public class ChartView implements Serializable {
     
     public static void generateCharts(Integer pid) throws SQLException {
         createAnimatedModels(pid);
-        System.out.println("Gen Charts for: " + pid);
+        //System.out.println("Gen Charts for: " + pid);
     }
  
     public void itemSelect(ItemSelectEvent event) {
@@ -175,7 +175,7 @@ public class ChartView implements Serializable {
             {
                 homepts.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField("pts"));
             }
-            System.out.println((Integer)games.get(i).getField("pts"));
+            ////System.out.println((Integer)games.get(i).getField("pts"));
         }
         
 //        homepts.set("2018-10-01", 2);
@@ -236,7 +236,7 @@ public class ChartView implements Serializable {
             }
             //store all data into a List
             games.add(game);
-            System.out.println(result.getString("date_game"));
+            //System.out.println(result.getString("date_game"));
         }
         ps.close();
     }
@@ -274,7 +274,7 @@ public class ChartView implements Serializable {
         animatedModel1.setLegendPosition("se");
         Axis yAxis = animatedModel1.getAxis(AxisType.Y);
         yAxis.setMin(0);
-        yAxis.setMax(maxScore + maxScore/5);
+        yAxis.setMax(maxScore + maxScore/5 + 1);
  
         animatedModel2 = initBarModel(pid,barLimit);
         animatedModel2.setTitle("Field Goals");
@@ -282,12 +282,11 @@ public class ChartView implements Serializable {
         animatedModel2.setLegendPosition("ne");
         yAxis = animatedModel2.getAxis(AxisType.Y);
         yAxis.setMin(0);
-        yAxis.setMax(maxFGA + maxFGA/5);
+        yAxis.setMax(maxFGA + maxFGA/5 + 1);
     }
  
     public void createAnimatedModels() {
-        int maxScore = 10;
-        int maxFGA = 15;
+        int maxScore = 10, maxFGA = 10;
         animatedModel1 = initLinearModel();
         animatedModel1.setTitle("Points Scored");
         animatedModel1.setAnimate(true);
