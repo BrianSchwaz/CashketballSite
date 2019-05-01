@@ -74,6 +74,7 @@ public class PlayerListBean implements Serializable{
     private HashMap<String,String> field_list;
     private ArrayList<String> col_names;
     private Boolean renderCharts;
+    private ArrayList<Tuple> pidDist;
     
     public Login getLogin(){
         return login;
@@ -439,8 +440,10 @@ public class PlayerListBean implements Serializable{
     
     public void onRowSelect(SelectEvent event) throws SQLException {
         System.out.println(((TableRow) selected).getField("name"));
+        Integer pid = (Integer)((TableRow) selected).getField("pid");
         renderCharts = true;
-        ChartView.generateCharts((Integer)((TableRow) selected).getField("pid"));
+        ChartView.generateCharts(pid);
+        nearest(5,pid);
     }
  
     public void onRowUnselect(UnselectEvent event) {
@@ -448,4 +451,35 @@ public class PlayerListBean implements Serializable{
         FacesContext.getCurrentInstance().addMessage(null, msg);
         renderCharts=false;
     }
+    
+   public void nearest(int nearestNum,int compPid) throws SQLException{
+       ArrayList<Tuple> pidDist = new ArrayList<Tuple>();
+       TableRow compPlayer = players.get(compPid);
+       for(TableRow player : players.values()){
+           System.out.println("Player " + player);
+           System.out.println("CompPlayer " + compPlayer);
+           System.out.println(getDistance(player,compPlayer));
+           Tuple tuple = new Tuple((Integer)player.getField("pid"),getDistance(player,compPlayer));
+           pidDist.add(tuple);
+       }
+       for(TableRow player : team.equals("Roster")?roster.values():opRoster.values()){
+           pidDist.add(new Tuple((Integer)player.getField("pid"),getDistance(player,compPlayer)));
+       }
+       Collections.sort(pidDist);
+       System.out.println(pidDist.subList(0, nearestNum));
+   }
+   
+   public Double getDistance(TableRow p1, TableRow p2){
+       Double dist = new Double(0);
+       System.out.println("distance");
+       for(String field : imp){
+           if(field_list.get(field).equals("int")){
+               dist += Math.pow(Math.abs((Integer)p1.getField(field) - (Integer)p2.getField(field)),2);
+           }
+           else if(field_list.get(field).equals("real")){
+               dist += Math.pow(Math.abs((Float)p1.getField(field) - (Float)p2.getField(field)),2);
+           }
+       }
+       return Math.sqrt(dist);
+   }
 }
