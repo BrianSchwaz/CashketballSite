@@ -51,6 +51,7 @@ public class PlayerListBean implements Serializable{
     private ELContext elContext = FacesContext.getCurrentInstance().getELContext();
     private Login login = (Login) FacesContext.getCurrentInstance().getApplication().getELResolver().getValue(elContext, null, "login");
     private HashMap<Integer,TableRow> players = new HashMap<>();
+    private HashMap<Integer,TableRow> allPlayers = new HashMap<>();
     private HashMap<Integer,TableRow> filteredPlayers = new HashMap<>();
     private HashMap<Integer,TableRow> roster = new HashMap<>();
     private HashMap<Integer,TableRow> opRoster = new HashMap<>();
@@ -65,6 +66,7 @@ public class PlayerListBean implements Serializable{
     private Connection con;
     private String input = "";
     private String[] imp = {"name","team_id","mp_per_g","fg_per_g","fg_pct","fg3_per_g","fg3_pct","efg_pct","ft_per_g","ft_pct","orb_per_g","trb_per_g","ast_per_g","stl_per_g","blk_per_g","tov_per_g","pts_per_g"};
+    private String[] compFields = {"fg_per_g","fg_pct","fg3_per_g","fg3_pct","efg_pct","ft_per_g","ft_pct","orb_per_g","trb_per_g","ast_per_g","stl_per_g","blk_per_g","tov_per_g","pts_per_g"};
     private ArrayList<String> important = new ArrayList<String>(Arrays.asList(imp));
     private ArrayList<String> selectedImp = new ArrayList<String>(Arrays.asList(imp));
     private String team = "Roster";
@@ -347,6 +349,34 @@ public class PlayerListBean implements Serializable{
         team = "Roster";
         updateRoster();
         updatePlayers();
+        
+        PreparedStatement ps = con.prepareStatement(
+                Queries.allPlayers(Queries.pgsString(col_names), currentSeason));
+        
+        ResultSet result = ps.executeQuery();
+        
+        fillMap(allPlayers,result);
+        normalizeAllPlayers();
+    }
+    
+    public void normalizeAllPlayers(){
+        for(String field : compFields){
+            Double sumToAvg = 0.0;
+            Double varSumToSD = 0.0;
+            Double sd;
+            for(TableRow player : allPlayers.values()){
+                sumToAvg += (Float)player.getField(field);
+            }
+            sumToAvg = sumToAvg / allPlayers.size();
+            for(TableRow player : allPlayers.values()){
+                varSumToSD += Math.pow((Float)player.getField(field) - sumToAvg, 2);
+            }
+            varSumToSD = Math.sqrt(varSumToSD / allPlayers.size());
+            for(TableRow player : allPlayers.values()){
+                player.setField(field, ((Float)player.getField(field) - sumToAvg) / varSumToSD);
+                
+            }
+        }
     }
     
     public void search() throws SQLException
@@ -453,33 +483,49 @@ public class PlayerListBean implements Serializable{
     }
     
    public void nearest(int nearestNum,int compPid) throws SQLException{
-       ArrayList<Tuple> pidDist = new ArrayList<Tuple>();
-       TableRow compPlayer = players.get(compPid);
-       for(TableRow player : players.values()){
-           System.out.println("Player " + player);
-           System.out.println("CompPlayer " + compPlayer);
-           System.out.println(getDistance(player,compPlayer));
-           Tuple tuple = new Tuple((Integer)player.getField("pid"),getDistance(player,compPlayer));
-           pidDist.add(tuple);
-       }
-       for(TableRow player : team.equals("Roster")?roster.values():opRoster.values()){
-           pidDist.add(new Tuple((Integer)player.getField("pid"),getDistance(player,compPlayer)));
+       pidDist = new ArrayList<Tuple>();
+       TableRow compPlayer = allPlayers.get(compPid);
+       for(TableRow player : allPlayers.values()){
+            if((Integer)player.getField("pid") != compPid){
+                Tuple tuple = new Tuple((Integer)player.getField("pid"),(String)player.getField("name"),getDistance(player,compPlayer));
+                pidDist.add(tuple);
+            }
+           
        }
        Collections.sort(pidDist);
-       System.out.println(pidDist.subList(0, nearestNum));
+       pidDist.forEach(tuple -> System.out.println(tuple.getName()));
+       pidDist = new ArrayList<Tuple>(pidDist.subList(0, nearestNum));
    }
    
    public Double getDistance(TableRow p1, TableRow p2){
        Double dist = new Double(0);
-       System.out.println("distance");
-       for(String field : imp){
+       System.out.println(p1.getField("name"));
+       for(String field : compFields){
            if(field_list.get(field).equals("int")){
                dist += Math.pow(Math.abs((Integer)p1.getField(field) - (Integer)p2.getField(field)),2);
            }
            else if(field_list.get(field).equals("real")){
-               dist += Math.pow(Math.abs((Float)p1.getField(field) - (Float)p2.getField(field)),2);
+               dist += Math.pow(Math.abs((Double)p1.getField(field) - (Double)p2.getField(field)),2);
            }
        }
-       return Math.sqrt(dist);
+       return Math.round(Math.sqrt(dist) * 10000.0) / 10000.0;
    }
+
+    public ArrayList<Tuple> getPidDist() {
+        return pidDist;
+    }
+
+    public void setPidDist(ArrayList<Tuple> pidDist) {
+        this.pidDist = pidDist;
+    }
+
+    public List<TableRow> getAllPlayers() {
+        List<TableRow> ap = new ArrayList<TableRow>(allPlayers.values());
+        return ap;
+    }
+
+    public void setAllPlayers(HashMap<Integer, TableRow> allPlayers) {
+        this.allPlayers = allPlayers;
+    }
+    
 }
