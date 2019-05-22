@@ -96,6 +96,17 @@
                         <center> #{player.name}, Distance: #{player.distance} </center>
                     </p:dataList>
                 </h:panelGrid>
+                <h2>Predicted Performance</h2>
+                <p:dataTable var="row"
+                             rowKey="#{row.getField('game_season')}"
+                             value="#{chartView.opponentGames}" 
+                             id="gameTable">
+                    <c:forEach class="playerColumn" items="#{chartView.game_cols}" var="columnName">
+                        <p:column class="playerColumn" headerText="#{columnName}">
+                            <h:outputText value="#{row.getField(columnName)}"/>
+                        </p:column>
+                    </c:forEach>
+                </p:dataTable>
                 <h:commandButton style='font-size:1em;padding:1em;' 
                                  class='logout' value="Logout" 
                                  action="#{playerListBean.logout()}"/>

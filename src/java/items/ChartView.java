@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -44,6 +45,8 @@ public class ChartView implements Serializable {
     private static ArrayList<String> game_cols;
     private static HashMap<String, String> col_type;
     private static ArrayList<TableRow> games;
+    private static ArrayList<TableRow> opponentGames;
+    private static ArrayList<String> predictFields;
 
     public List<LineChartModel> getGamesModels() {
         return gamesModels;
@@ -69,6 +72,8 @@ public class ChartView implements Serializable {
             dbConnect = DBConnect.getInstance();
             con = dbConnect.getConnection();
             gameColInfo();
+            String[] avgFields = {"fg","fga","fg_pct","fg3","fg3a","fg3_pct","ft","fta","ft_pct","orb","drb","trb","ast","stl","blk","tov","pf","pts","plus_minus","game_result"};
+            predictFields = new ArrayList<String>(Arrays.asList(avgFields));
         } catch (SQLException ex) {
             Logger.getLogger(ChartView.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -213,6 +218,37 @@ public class ChartView implements Serializable {
         }
     }
     
+        
+    public static void predicted(String opponent, Integer pid, Integer pastGames) throws SQLException{
+        System.out.println(Queries.pastGamesAvg(pid,opponent,pastGames));
+        PreparedStatement ps = con.prepareStatement(Queries.pastGamesAvg(pid,opponent,pastGames));
+        ResultSet result = ps.executeQuery();
+        while (result.next()) {
+            TableRow game = new TableRow();
+            for(String col_name: game_cols)
+            {                      
+                if(col_type.get(col_name).equals("text"))
+                {
+                    game.setField(col_name, (Object)result.getString(col_name));
+                }
+                else if(col_type.get(col_name).equals("integer"))
+                {
+                    System.out.println((Object)result.getFloat(col_name));
+                    game.setField(col_name, (Object)result.getFloat(col_name));
+                }
+                else if(col_type.get(col_name).equals("real"))
+                {
+                    System.out.println((Object)result.getFloat(col_name));
+                    game.setField(col_name, (Object)result.getFloat(col_name));
+                }
+                
+            }
+            //store all data into a List
+            opponentGames.add(game);
+        }
+        ps.close();
+    }
+    
     private static void getGames(Integer pid,String startDate,Integer limit) throws SQLException{
         PreparedStatement ps = con.prepareStatement(Queries.gamesQuery(pid, startDate,limit));
         ResultSet result = ps.executeQuery();
@@ -236,7 +272,6 @@ public class ChartView implements Serializable {
             }
             //store all data into a List
             games.add(game);
-            //System.out.println(result.getString("date_game"));
         }
         ps.close();
     }
@@ -339,4 +374,30 @@ public class ChartView implements Serializable {
  
         dateModel.getAxes().put(AxisType.X, axis);
     }
+
+    public List<TableRow> getOpponentGames() {
+        return opponentGames;
+    }
+
+    public void setOpponentGames(ArrayList<TableRow> opponentGames) {
+        ChartView.opponentGames = opponentGames;
+    }
+
+    public ArrayList<String> getGame_cols() {
+        return game_cols;
+    }
+
+    public void setGame_cols(ArrayList<String> game_cols) {
+        ChartView.game_cols = game_cols;
+    }
+
+    public static ArrayList<String> getPredictFields() {
+        return predictFields;
+    }
+
+    public static void setPredictFields(ArrayList<String> predictFields) {
+        ChartView.predictFields = predictFields;
+    }
+    
+    
 }

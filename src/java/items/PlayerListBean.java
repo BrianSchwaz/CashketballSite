@@ -5,6 +5,7 @@
  */
 package items;
 
+import static items.Queries.getAvgFields;
 import java.io.Serializable;
 import static java.rmi.server.LogStream.log;
 import java.sql.Connection;
@@ -469,15 +470,18 @@ public class PlayerListBean implements Serializable{
     }
     
     public void onRowSelect(SelectEvent event) throws SQLException {
-        System.out.println(((TableRow) selected).getField("name"));
+        String opponent = "LAL";
+        Integer pastGames = 5;
+        //System.out.println(((TableRow) selected).getField("name"));
         Integer pid = (Integer)((TableRow) selected).getField("pid");
         renderCharts = true;
         ChartView.generateCharts(pid);
         nearest(5,pid);
+        ChartView.predicted(opponent,pid,pastGames);
     }
  
     public void onRowUnselect(UnselectEvent event) {
-        FacesMessage msg = new FacesMessage("Car Unselected", (String)(((TableRow) event.getObject()).getField("pid")));
+        FacesMessage msg = new FacesMessage("Unselected", (String)(((TableRow) event.getObject()).getField("pid")));
         FacesContext.getCurrentInstance().addMessage(null, msg);
         renderCharts=false;
     }

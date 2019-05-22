@@ -99,4 +99,32 @@ public class Queries {
         "       ON pgs.pid = tot.pid\n" +
         "       WHERE tot.pid IS NULL))curPlayers\n";
     }
+    
+    public static String getAvgFields(){
+        String[] regFields = {"pid","name"};
+        String[] avgFields = {"fg","fga","fg_pct","fg3","fg3a","fg3_pct","ft","fta","ft_pct","orb","drb","trb","ast","stl","blk","tov","pf","pts","plus_minus","game_result"};
+        String fields = "";
+        for(int i = 0; i < regFields.length; i++){
+            fields += "top." + regFields[i] + ", ";
+        }
+        for(int i = 0; i < avgFields.length;i++){
+            fields += "ROUND(CAST(AVG(top." + avgFields[i] + ") as numeric),2) as " + avgFields[i] + ", ";
+        }
+        return fields.substring(0, fields.length() - 2);
+    }
+    
+    public static String pastGamesAvg(Integer pid, String opponent,Integer numGames){
+        return 
+        "SELECT " + 
+        getAvgFields() + "\n" +
+        "FROM\n" +
+        "(SELECT *\n" +
+        "  FROM public.\"Game\"\n" +
+        "  WHERE pid = " + pid + " AND \n" +
+        "  opp_id = '" + opponent + "'\n" +
+        "  ORDER BY date_game desc\n" +
+        "  LIMIT " + numGames + ")top\n" +
+        "GROUP BY top.pid, top.name";
+        
+    }
 }
