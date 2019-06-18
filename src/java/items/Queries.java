@@ -13,6 +13,13 @@ import java.util.ArrayList;
  */
 public class Queries {
     
+    public static String getTeams(){
+        return
+        "SELECT DISTINCT team_id\n" +
+        "  FROM public.\"PerGame\"\n" +
+        "  WHERE season = '2018-19' AND NOT team_id = 'TOT'";
+    }
+    
     public static String constructPlayerQuery(String pgsFields,String currentSeason,int rows,int offset, String searchInput,String team, boolean isSearch, String login){
         System.out.println("Query login: " + login);
         return 

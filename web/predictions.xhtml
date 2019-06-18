@@ -15,7 +15,7 @@
         <h:form>
              <center>
                 <h1 id="main-header">CASHKETBALL</h1>
-                <p:tabMenu activeIndex="2">
+                <p:tabMenu activeIndex="3">
                     <p:menuitem value="Your Roster" outcome="yourRoster" icon="ui-icon-star">
                         <f:param name="i" value="0" />
                     </p:menuitem>
@@ -82,26 +82,28 @@
                         </div>
                     </f:facet>
                 </p:dataTable>
-                <h2>Recent Performance:</h2>
+                <h2>Predicted Performance</h2>
                 <h:outputLabel style="color:black;font-size:3em;" 
                                value='#{playerListBean.selected.getField("name")}' 
                                rendered="#{playerListBean.renderCharts}"/>
-                <h:panelGrid id='dataCharts' rendered="true" columns="2" columnClasses="left,right" style="width:80%;left:20%;margin:20px;">
-                    <p:chart type="line" model="#{chartView.animatedModel1}" style="width:600px;height:600px;font-size:2em;" />
-                    <p:menu model="#{menuView.graphMenu}"/>
-                    <p:chart type="bar" model="#{chartView.animatedModel2}" style="width:600px;height:600px;font-size:2em;" />
-                    <p:menu model="#{menuView.chartMenu}" />
-                </h:panelGrid>
-                
-                <div style="margin:30px;max-width:50%;">
-                    <p:dataList value="#{playerListBean.pidDist}" var="player" type="ordered" >
-                            <f:facet name="header">
-                                Most Similar Players
-                            </f:facet>
-                            <center> #{player.name}, Distance: #{player.distance} </center>
-                    </p:dataList>
-                </div>
-                <h:commandButton style='font-size:1em;padding:1em;' 
+                <p:panel header="SELECT OPPONENT" style="margin-bottom:10px;max-width:50%;">
+                    <p:selectOneMenu id="opponent" value="#{teamDropdown.opposingTeam}" style="width:300px">
+<!--                        <p:ajax listener="#{teamDropdown.changeOpposing}" update="gameTable" />-->
+                        <f:selectItem itemLabel="SELECT OPPONENT" itemValue="" noSelectionOption="true" />
+                        <f:selectItems value="#{teamDropdown.teams}" />
+                    </p:selectOneMenu>
+                </p:panel>
+                <p:dataTable var="row"
+                             rowKey="#{row.getField('game_season')}"
+                             value="#{chartView.opponentGames}" 
+                             id="gameTable">
+                    <c:forEach class="playerColumn" items="#{chartView.game_cols}" var="columnName">
+                        <p:column class="playerColumn" headerText="#{columnName}">
+                            <h:outputText value="#{row.getField(columnName)}"/>
+                        </p:column>
+                    </c:forEach>
+                </p:dataTable>
+                <h:commandButton style='font-size:1em;padding:1em;margin-top:3em;' 
                                  class='logout' value="Logout" 
                                  action="#{playerListBean.logout()}"/>
             </center>
@@ -111,3 +113,4 @@
         </h:form>
     </h:body>
 </html>               
+

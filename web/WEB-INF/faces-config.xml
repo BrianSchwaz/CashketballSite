@@ -42,6 +42,16 @@
         <managed-bean-class>items.ChartView</managed-bean-class>
         <managed-bean-scope>session</managed-bean-scope>
     </managed-bean>
+    <managed-bean>
+        <managed-bean-name>teamDropdown</managed-bean-name>
+        <managed-bean-class>items.TeamDropdown</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+    </managed-bean>
+    <managed-bean>
+        <managed-bean-name>menuView</managed-bean-name>
+        <managed-bean-class>items.MenuView</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+    </managed-bean>
     <navigation-rule>
         <from-view-id>
             /index.xhtml
@@ -90,6 +100,16 @@
     <navigation-rule>
         <from-view-id>
             /players.xhtml
+        </from-view-id>
+        <navigation-case>
+            <from-outcome>back</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+            <redirect/>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <from-view-id>
+            /predictions.xhtml
         </from-view-id>
         <navigation-case>
             <from-outcome>back</from-outcome>

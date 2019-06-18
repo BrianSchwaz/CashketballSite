@@ -78,6 +78,7 @@ public class PlayerListBean implements Serializable{
     private ArrayList<String> col_names;
     private Boolean renderCharts;
     private ArrayList<Tuple> pidDist;
+    public static Integer currentPid;
     
     public Login getLogin(){
         return login;
@@ -422,7 +423,7 @@ public class PlayerListBean implements Serializable{
     
     public void remove(String teamTable) throws SQLException
     {
-        System.out.println(team);
+//        System.out.println(team);
         setTeam(teamTable);
         Integer pid = (Integer)selected.getField("pid");
         PreparedStatement ps
@@ -452,7 +453,7 @@ public class PlayerListBean implements Serializable{
         Integer pid;
         if(selected == null){return;}
         pid = (Integer)selected.getField("pid");
-        System.out.println(selected.getField("name"));
+//        System.out.println(selected.getField("name"));
         if(!(team.equals("Roster")?roster:opRoster).containsKey(pid))
         {
             PreparedStatement ps
@@ -475,6 +476,7 @@ public class PlayerListBean implements Serializable{
         //System.out.println(((TableRow) selected).getField("name"));
         Integer pid = (Integer)((TableRow) selected).getField("pid");
         renderCharts = true;
+        currentPid = pid;
         ChartView.generateCharts(pid);
         nearest(5,pid);
         ChartView.predicted(opponent,pid,pastGames);
@@ -497,7 +499,7 @@ public class PlayerListBean implements Serializable{
            
        }
        Collections.sort(pidDist);
-       pidDist.forEach(tuple -> System.out.println(tuple.getName()));
+//       pidDist.forEach(tuple -> System.out.println(tuple.getName()));
        pidDist = new ArrayList<Tuple>(pidDist.subList(0, nearestNum));
    }
    

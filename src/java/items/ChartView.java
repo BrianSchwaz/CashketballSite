@@ -47,6 +47,11 @@ public class ChartView implements Serializable {
     private static ArrayList<TableRow> games;
     private static ArrayList<TableRow> opponentGames;
     private static ArrayList<String> predictFields;
+    static String chartField;
+    static String chartAttempts;
+    static String graphField;
+    static String chartTitle;
+    static String graphTitle;
 
     public List<LineChartModel> getGamesModels() {
         return gamesModels;
@@ -68,6 +73,11 @@ public class ChartView implements Serializable {
     @PostConstruct
     public void init() {
         createAnimatedModels();
+        graphTitle = "Points";
+        chartTitle = "Field Goals";
+        graphField = "pts";
+        chartField = "fg";
+        chartAttempts = "fga";
         try {
             dbConnect = DBConnect.getInstance();
             con = dbConnect.getConnection();
@@ -128,8 +138,8 @@ public class ChartView implements Serializable {
         fgsa.setLabel("FGA");
         for(int i = games.size()-1;i >= 0 && i>=games.size()- limit;i--)
         {
-            fgs.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField("fg"));
-            fgsa.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField("fga"));
+            fgs.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField(chartField));
+            fgsa.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField(chartAttempts));
         }
  
         model.addSeries(fgs);
@@ -174,20 +184,13 @@ public class ChartView implements Serializable {
         {
             if(games.get(i).getField("game_location").equals("@"))
             {
-                awaypts.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField("pts"));
+                awaypts.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField(graphField));
             }
             else
             {
-                homepts.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField("pts"));
+                homepts.set((String)games.get(i).getField("date_game"),(Integer)games.get(i).getField(graphField));
             }
-            ////System.out.println((Integer)games.get(i).getField("pts"));
         }
-        
-//        homepts.set("2018-10-01", 2);
-//        homepts.set("2018-10-03", 1);
-//        homepts.set("2018-10-05", 3);
-//        homepts.set("2018-10-07", 6);g
-//        homepts.set("2018-10-09", 8);
  
         model.addSeries(homepts);
         model.addSeries(awaypts);
@@ -207,7 +210,6 @@ public class ChartView implements Serializable {
         
         PreparedStatement ps = con.prepareStatement(Queries.getCols("Game"));
 
-        //get Player data from database
         ResultSet result = ps.executeQuery();
 
         while (result.next()) {
@@ -220,12 +222,14 @@ public class ChartView implements Serializable {
     
         
     public static void predicted(String opponent, Integer pid, Integer pastGames) throws SQLException{
-        System.out.println(Queries.pastGamesAvg(pid,opponent,pastGames));
+//        System.out.println(Queries.pastGamesAvg(pid,opponent,pastGames));
         PreparedStatement ps = con.prepareStatement(Queries.pastGamesAvg(pid,opponent,pastGames));
         ResultSet result = ps.executeQuery();
+        String[] avgFields = {"fg","fga","fg_pct","fg3","fg3a","fg3_pct","ft","fta","ft_pct","orb","drb","trb","ast","stl","blk","tov","pf","pts","plus_minus","game_result"};
+        opponentGames = new ArrayList<TableRow>();
         while (result.next()) {
             TableRow game = new TableRow();
-            for(String col_name: game_cols)
+            for(String col_name: avgFields)
             {                      
                 if(col_type.get(col_name).equals("text"))
                 {
@@ -233,12 +237,12 @@ public class ChartView implements Serializable {
                 }
                 else if(col_type.get(col_name).equals("integer"))
                 {
-                    System.out.println((Object)result.getFloat(col_name));
+//                    System.out.println((Object)result.getFloat(col_name));
                     game.setField(col_name, (Object)result.getFloat(col_name));
                 }
                 else if(col_type.get(col_name).equals("real"))
                 {
-                    System.out.println((Object)result.getFloat(col_name));
+//                    System.out.println((Object)result.getFloat(col_name));
                     game.setField(col_name, (Object)result.getFloat(col_name));
                 }
                 
@@ -299,12 +303,12 @@ public class ChartView implements Serializable {
         int limit = 10;
         int barLimit = 5;
         String startDate = "2018-10-01";
-        Integer maxScore = (Integer)getAgg(pid,startDate,"MAX","pts",limit);
-        Integer maxFGA = (Integer)getAgg(pid,startDate,"MAX","fga",limit);
+        Integer maxScore = (Integer)getAgg(pid,startDate,"MAX",graphField,limit);
+        Integer maxFGA = (Integer)getAgg(pid,startDate,"MAX",chartAttempts,limit);
         getGames(pid,startDate,limit);
         
         animatedModel1 = initLinearModel(pid);
-        animatedModel1.setTitle("Points Scored");
+        animatedModel1.setTitle(graphTitle);
         animatedModel1.setAnimate(true);
         animatedModel1.setLegendPosition("se");
         Axis yAxis = animatedModel1.getAxis(AxisType.Y);
@@ -312,7 +316,7 @@ public class ChartView implements Serializable {
         yAxis.setMax(maxScore + maxScore/5 + 1);
  
         animatedModel2 = initBarModel(pid,barLimit);
-        animatedModel2.setTitle("Field Goals");
+        animatedModel2.setTitle(chartTitle);
         animatedModel2.setAnimate(true);
         animatedModel2.setLegendPosition("ne");
         yAxis = animatedModel2.getAxis(AxisType.Y);
@@ -323,7 +327,7 @@ public class ChartView implements Serializable {
     public void createAnimatedModels() {
         int maxScore = 10, maxFGA = 10;
         animatedModel1 = initLinearModel();
-        animatedModel1.setTitle("Points Scored");
+        animatedModel1.setTitle(graphTitle);
         animatedModel1.setAnimate(true);
         animatedModel1.setLegendPosition("se");
         Axis yAxis = animatedModel1.getAxis(AxisType.Y);
@@ -331,7 +335,7 @@ public class ChartView implements Serializable {
         yAxis.setMax(maxScore + maxScore/5);
  
         animatedModel2 = initBarModel();
-        animatedModel2.setTitle("Field Goals");
+        animatedModel2.setTitle(chartTitle);
         animatedModel2.setAnimate(true);
         animatedModel2.setLegendPosition("ne");
         yAxis = animatedModel2.getAxis(AxisType.Y);
@@ -398,6 +402,5 @@ public class ChartView implements Serializable {
     public static void setPredictFields(ArrayList<String> predictFields) {
         ChartView.predictFields = predictFields;
     }
-    
     
 }
